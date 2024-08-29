@@ -1,2 +1,2 @@
 # genomebio
-Genome biology practice
+Repository for all of the genome biology practice, homework, and projects
