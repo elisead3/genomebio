@@ -1,0 +1,7 @@
+# genomebio
+
+Today I learned to use the OSCER and submit a job with these files.
+Edit for testing git push 
+
+* [template.sbatch](template.sbatch)
+* [test.sh](test.sh)
