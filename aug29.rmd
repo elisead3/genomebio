@@ -1,6 +1,0 @@
-# genomebio
-
-Today I learned to use the OSCER and submit a job with these files
-
-* [template.sbatch](template.sbatch)
-* [test.sh](test.sh)
