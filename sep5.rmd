@@ -1,0 +1,7 @@
+# genomebio
+
+Today we set up mamba and retrieved the sequence data and reference data that we will be working with, and downloaded the PFam-A database. We then evaluated the quality of our Illumina reads using the fastqc program. 
+
+* [E. coli sbatch](ecoli_fastqc.sbatch)
+* [Read 1 fastqc](fastqc_output/read_1_fastqc.html)
+* [Read 2 fastqc](fastqc_output/read_2_fastqc.html)
