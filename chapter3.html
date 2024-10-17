@@ -11,7 +11,7 @@
 
 
 
-<title>README</title>
+<title>chapter3.knit</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -365,20 +365,58 @@ pre code {
 </div>
 
 
-<div id="genomebio" class="section level1">
-<h1>genomebio</h1>
-<p>Repository for all of the genome biology practice, homework, and
-projects</p>
+<p>#genome bio</p>
+<p>(Finishing tasks 14-15 of chapter 2) We used the bcftools package to
+predict variants. After calling and filtering the variants, we loaded
+them into IGV to view them. Then, we used BEDTools to identify genes
+that are not completely covered by reads along the entire length of the
+gene.</p>
+<p>(Chapter 3) Next, we want to collect the novel reads that didn’t map
+to the reference and try to determine their purpose. First, we
+determined which SAM flag we need to collect unmapped reads (12). Then
+we converted from BAM to FASTQ format. For Task 2, I hypothesized that I
+could tell if the fastq files had the same number of entries by looking
+at file size, which turned out to be incorrect. We used SPAdes to start
+assembling the unmapped reads from scratch. We used QUAST to generate
+some statistics from our assembly. Then, we searched our contigs against
+the NCBI nucleotide database to look for similar nucleotide sequences
+(using pre-computed files to save time). Then we used getorf to predict
+open reading frames in the contigs. We then searched the ORFs against
+the NCBI protein database (pre-computed). To make sure these contigs
+aren’t already present in the reference sequence, we used BLAST+ to
+compare our assembled unmapped reads against the reference. Lastly, we
+searched against the Pfam database to identify protein families in our
+contigs. We were then able to take the accession numbers from our
+results and search the Pfam database with them to find the protein
+family.</p>
 <ul>
-<li><a href="aug29.html">Day One</a></li>
-<li><a href="sep5.html">Day Two</a></li>
-<li><a href="sep26.html">Day Three</a></li>
-<li><a href="oct3.html">Day Four</a></li>
-<li><a href="oct10.html">Day Five</a></li>
-<li><a href="chapter3.html">Finishing Chapters 2 and 3</a></li>
+<li><a href="ecoli_vcf.sh">E. coli raw unfiltered variant calls
+sh</a></li>
+<li><a href="ecoli_vcf.sbatch">E. coli raw unfiltered variant calls
+sbatch</a></li>
+<li><a href="ecoli_call.sh">Asking bcftools to call specifically
+variants sh</a></li>
+<li><a href="ecoli_call.sbatch">Asking bcftools to call specifically
+variants sbatch</a></li>
+<li><a href="ecoli_filt.sh">Filtering VCFs sh</a></li>
+<li><a href="ecoli_filt.sbatch">Filtering VCFs sbatch</a></li>
+<li><a href="ecoli_cover.sh">Identifying uncovered genes sh</a></li>
+<li><a href="ecoli_cover.sbatch">Identifying uncovered genes
+sbatch</a></li>
+<li><a href="bam_to_fasta.sh">BAM to FASTQ sh</a></li>
+<li><a href="bam_to_fasta.sbatch">BAM to FASTQ sbatch</a></li>
+<li><a href="unmapped_spades.sh">SPAdes assembly</a></li>
+<li><a href="unmapped_spades.sbatch">SPAdes assembly sbatch</a></li>
+<li><a href="unmapped_quast.sh">QUAST sh</a></li>
+<li><a href="unmapped_quast.sbatch">QUAST sbatch</a></li>
+<li><a href="unmapped_orf.sh">Finding ORFs sh</a></li>
+<li><a href="unmapped_orf.sbatch">Finding ORFs sbatch</a></li>
+<li><a href="unmapped_blastn.sh">Comparing seq with BLAST+ sh</a></li>
+<li><a href="unmapped_blastn.sbatch">Comparing seq with BLAST+
+sbatch</a></li>
+<li><a href="unmapped_pfam.sh">Pfam search sh</a></li>
+<li><a href="unmapped_pfam.sbatch">Pfam search sbatch</a></li>
 </ul>
-<p><a href="BIOL7263_project_proposal.pdf">Project Proposal</a></p>
-</div>
 
 
 

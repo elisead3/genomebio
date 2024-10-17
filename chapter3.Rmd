@@ -1,0 +1,26 @@
+#genome bio
+
+(Finishing tasks 14-15 of chapter 2) We used the bcftools package to predict variants. After calling and filtering the variants, we loaded them into IGV to view them. Then, we used BEDTools to identify genes that are not completely covered by reads along the entire length of the gene. 
+
+(Chapter 3) Next, we want to collect the novel reads that didn't map to the reference and try to determine their purpose. First, we determined which SAM flag we need to collect unmapped reads (12). Then we converted from BAM to FASTQ format. For Task 2, I hypothesized that I could tell if the fastq files had the same number of entries by looking at file size, which turned out to be incorrect. We used SPAdes to start assembling the unmapped reads from scratch. We used QUAST to generate some statistics from our assembly. Then, we searched our contigs against the NCBI nucleotide database to look for similar nucleotide sequences (using pre-computed files to save time). Then we used getorf to predict open reading frames in the contigs. We then searched the ORFs against the NCBI protein database (pre-computed). To make sure these contigs aren't already present in the reference sequence, we used BLAST+ to compare our assembled unmapped reads against the reference. Lastly, we searched against the Pfam database to identify protein families in our contigs. We were then able to take the accession numbers from our results and search the Pfam database with them to find the protein family. 
+
+* [E. coli raw unfiltered variant calls sh](ecoli_vcf.sh)
+* [E. coli raw  unfiltered variant calls sbatch](ecoli_vcf.sbatch)
+* [Asking bcftools to call specifically variants sh](ecoli_call.sh)
+* [Asking bcftools to call specifically variants sbatch](ecoli_call.sbatch)
+* [Filtering VCFs sh](ecoli_filt.sh)
+* [Filtering VCFs sbatch](ecoli_filt.sbatch)
+* [Identifying uncovered genes sh](ecoli_cover.sh)
+* [Identifying uncovered genes sbatch](ecoli_cover.sbatch)
+* [BAM to FASTQ sh](bam_to_fasta.sh)
+* [BAM to FASTQ sbatch](bam_to_fasta.sbatch)
+* [SPAdes assembly](unmapped_spades.sh)
+* [SPAdes assembly sbatch](unmapped_spades.sbatch)
+* [QUAST sh](unmapped_quast.sh)
+* [QUAST sbatch](unmapped_quast.sbatch)
+* [Finding ORFs sh](unmapped_orf.sh)
+* [Finding ORFs sbatch](unmapped_orf.sbatch)
+* [Comparing seq with BLAST+ sh](unmapped_blastn.sh)
+* [Comparing seq with BLAST+ sbatch](unmapped_blastn.sbatch)
+* [Pfam search sh](unmapped_pfam.sh)
+* [Pfam search sbatch](unmapped_pfam.sbatch)
