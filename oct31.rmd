@@ -1,0 +1,17 @@
+# genomebio
+
+Today we did a genome-wide association analysis to compare the genomes of two populations of a bird species which tend to have different colored plumage (red vs yellow). The goal of the study which originally performed this analysis was to identify loci that may be associated with these differences in feather color. We analyzed just chromosome 3 from the genomes in question. We looked at hybrid individuals (offspring from crossing birds with the yellow and red phenotypes together) to help us identify variants that might be associated with plumage color. To find the genetic distance between the populations, we used vcftools to calculate the Fst values which compare the number of SNPs between the populations. Then we used the Beagle program to prepare our varients for the genome-wide association analysis, which included inferring haplotypes and sporadic missing genotype data of the individuals. Since we would like to focus on the hybrid individuals, we dropped the allopatric individuals from our vcf file. We used plink to reformat the files for further analysis. Then we generated the relatedness matrix using gemma to infer relatedness. We then tested for associations between the varients the plumage color and loaded our files into IGV to view the results. 
+
+* [Fixation Index sh](fst.sh)
+* [Fixation Index sbatch](fst.sbatch)
+* [Beagle sh](beagle.sh)
+* [Beagle sbatch](beagle.sbatch)
+* [Filtering to hybrid sh](filter_HZ.sh)
+* [Filtering to hybrid sbatch](filter_HZ.sbatch)
+* [Plink for formatting, sh](plink.sh)
+* [Plink for formatting, sbatch](plink.sbatch)
+* [gemma sh](relate.sh)
+* [gemma sbatch](relate.sbatch)
+* [Testing for associations sh](gemma_lm.sh)
+* [Testing for associations sbatch](gemma_lm.sbatch)
+* [R script for formatting](GWA.R)
