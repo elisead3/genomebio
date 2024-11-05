@@ -7,5 +7,7 @@ Repository for all of the genome biology practice, homework, and projects
 * [Day Four](oct3.html)
 * [Day Five](oct10.html)
 * [Finishing Chapters 2 and 3](chapter3.html)
+* [Oct 31](oct31.html)
+* [Chapter 4](chapter4.html)
 
 [Project Proposal](BIOL7263_project_proposal.pdf)
