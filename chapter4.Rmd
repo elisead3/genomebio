@@ -1,0 +1,17 @@
+#genomebio
+
+We ran a de novo assembly using SPAdes on our short reads for E. coli and then used QUAST to look at the statistics for the assembly. Then we indexed our contigs using BWA and aligned our reads to the contigs. We converted our SAM file to BAM, then sorted and indexed the BAM file. We then ran qualimap to obtain some more detailed information about our assembly. We used IGV to take a look at our assembly and look for interesting features. Reads flagged in red in IGV indicate larger than expected insert size, and blue indicates smaller than expected insertion size. I found many reads flagged both red and blue. Some pairs which aligned to more than one contig were also highlighted (in the color corresponding to the other contig which it aligns to). We the annotated our contigs by calling the open reading frames and searching them against the Pfam database and also by blasting them against known proteins. 
+
+* [SPAdes Assembly sh](full_spades.sh)
+* [SPAdes Assembly sbatch](full_spades.sbatch)
+* [Mapping reads back to assembly sh](align_de_novo.sh)
+* [Mapping reads back to assembly sbatch](align_de_novo.sbatch)
+* [Running qualimap sh](qmap_de_novo.sh)
+* [Running qualimap sbatch](qmap_de_novo.sbatch)
+* [Calling open reading frames sh](orfipy.sh)
+* [Calling open reading frames sbatch](orfipy.sbatch)
+* [Searching against Pfam sh](pfam.sh)
+* [Searching against Pfam sbatch](pfam.sbatch)
+* [Blasting ORFs sh](orf_blast.sh)
+* [Blasting ORFs sbatch](orf_blast.sbatch)
+
