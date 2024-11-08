@@ -1,0 +1,20 @@
+# genomebio
+
+The objective for this chapter was to use some short read data for Pseudomonas along with some long read data to obtain better coverage. First, we quality checked with fastqc. The Pacbio reads had less accuracy than the short reads, as expected, but are longer. Then we trimmed our short reads using trim_galore. We performed our first assembly with just the short reads using SPAdes. We ran quast to check the statistics for our assembly. Then, we created a hybrid assembly of both the long reads and short reads together, also using SPAdes. We ran quast and were able to see that the hybrid assembly had much fewer contigs than the short read assembly, indicating that the long reads provided better coverage. Next, we aligned our reads back to the reference to check the alignment. We aligned the short reads using BWA and the long reads using minimap2. Lastly, we loaded our contigs and bam files into IGV to check the assembly. We were able to see that the coverage of the long reads was much better but contained more errors than the short reads. 
+
+* [FastQC sh](pseudo_fastqc.sh)
+* [FastQC sbatch](pseudo_fastqc.sbatch)
+* [Trimming short reads sh](pseudo_trim.sh)
+* [Trimming short reads sbatch](pseudo_trim.sbatch)
+* [Short Reads Assembly sh](pseud_short_assembly.sh)
+* [Short Reads Assembly sbatch](pseud_short_assembly.sbatch)
+* [QUAST for short reads sh](pseud_quast.sh)
+* [QUAST for short reads sbatch](pseud_quast.sbatch)
+* [Long read assembly sh](pseud_long.sh)
+* [Long read assembly sbatch](pseud_long.sbatch)
+* [QUAST for long reads sh](long_quast.sh)
+* [QUAST for long reads sbatch](long_quast.sbatch)
+* [BWA for short reads sh](bwa_pseudo.sh)
+* [BWA for short reads sbatch](bwa_pseudo.sbatch)
+* [Minimap for long reads sh](minimap_pseudo.sh)
+* [Minimap for long reads sbatch](minimap_pseudo.sbatch)
