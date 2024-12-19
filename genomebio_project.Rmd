@@ -1,0 +1,348 @@
+# Genome Biology Project
+
+## Introduction
+
+Campylobacteriosis is considered to be the leading cause of bacterial diarrhea globally. Infection is caused by Campylobacter spp. and it frequently occurs after contact with or ingestion of contaminated raw or undercooked poultry. Serious long-term effects can occur after infection such as IBS and reactive arthritis. Additionally, Campylobacter causes at least a third of cases of Guillain-Barré syndrome, which can result in progressive and occasionally permanent paralysis. Campylobacter bacteria such as C. jejuni and C. coli are microaerophilic, which means they prefer oxygen concentrations of 2-10%. Despite its microaerophilic nature, Campylobacter has shown itself to be capable of surviving oxygen exposure during meat processing. It is now known that some strains of Campylobacter are aerotolerant and it appears to be this trait that allows them to survive long enough to contaminate our meat supply. The precise genetic mechanisms underlying aerotolerance are still unknown. The objective of this study is to examine gene expression of aerotolerant Campylobacter spp. under both aerobic and microaerobic conditions for the purpose of determining which genes contribute most to aerotolerance. The expected outcome of this project was to discover genes that are highly upregulated or downregulated under aerobic conditions as compared to the microaerobic timepoint. 
+
+
+## Data Sources
+
+In the present study, RNA samples were previously collected from two strains of Campylobacter, one from C. jejuni and one from C. coli, from multiple timepoints. Both strains had been previously characterized as aerotolerant by my lab. My lab also performed the genome assembly for these strains. At the control timepoint, Time 0, samples were collected from cultures which had been kept under microaerobic conditions. The remaining samples were collected at various timepoints after exposure to atmospheric levels of oxygen. A cDNA library was created and the samples were sent for sequencing. The sequencing was performed by a sequencing service provider using an Illumina Hiseq 4000 platform. 
+
+
+Samples: 
+
+Timepoints 0, 15 min, 30 min, 45 min, 1hr, 3hr, 6hr, 9hr, 12hr, and 15hr for S2-20
+
+Timepoints 0, 15 min, 30 min, 45 min, 1hr, 3hr, 6hr, and 9hr for WA3-33
+
+Most example code is shown below using the S2-20 strain, but code was repeated for the other strain as well.
+
+
+Reference genomes downloaded from Genbank:
+
+S2-20: https://www.ncbi.nlm.nih.gov/nuccore/NZ_CP136638.1
+
+WA333: https://www.ncbi.nlm.nih.gov/nuccore/NZ_CP017873.1
+
+
+
+## Analysis and Results
+
+First, Bakta was used to perform the annotation of the reference genomes. The database for Bakta was downloaded to an external hard drive (for future re-use for other projects that might require annotation). During the annotation process, several error messages arose due to some dependent packages needing updates. These errors were resolved by updating packages. 
+
+
+```
+conda install -c conda-forge -c bioconda bakta 
+bakta_db list
+
+# Downloading Bakta database to external hard drive
+bakta_db download --output /Volumes/Fakhr_lab_2/project/bakta_db --type full
+
+# Updating database after an error message
+amrfinder_update --force_update --database /Volumes/Fakhr_lab_2/project/bakta_db/db/amrfinderplus-db
+
+# Updating/installing various packages after error messages
+pip install pyrodigal
+project pip install pyhmmer
+
+# Annotation of S2-20
+bakta --db /Volumes/Fakhr_lab_2/project/bakta_db/db /Volumes/Fakhr_lab_2/project/S2-20_chromosome.fasta --output /Volumes/Fakhr_lab_2/project
+```
+
+
+Quality checks had been previously performed by our postdoc Dr. Anand Karki using fastqc. Quality check files indicated a low-quality region of about 10 bases at the 5' end on all sample files, so this was noted to be trimmed. The rest of the quality check looked satisfactory. 
+
+
+```
+# Command for Trimmomatic
+for r1_file in *_R1_001.fastq.gz; do # Derive the base name (remove _R1_001.fastq.gz) base_name=$(basename "$r1_file" _R1_001.fastq.gz) # Corresponding R2 file r2_file="${base_name}_R2_001.fastq.gz" # Output files output_r1_paired="trimmed/${base_name}_R1_paired.fq.gz" output_r1_unpaired="trimmed/${base_name}_R1_unpaired.fq.gz" output_r2_paired="trimmed/${base_name}_R2_paired.fq.gz" output_r2_unpaired="trimmed/${base_name}_R2_unpaired.fq.gz" # Run Trimmomatic java -jar Trimmomatic-0.39/trimmomatic-0.39.jar PE \ "$r1_file" "$r2_file" \ "$output_r1_paired" "$output_r1_unpaired" \ "$output_r2_paired" "$output_r2_unpaired" \ ILLUMINACLIP:Trimmomatic-0.39/adapters/TruSeq3-PE.fa:2:30:10:2:True \ LEADING:3 TRAILING:3 HEADCROP:10 MINLEN:36 done
+```
+
+
+In preparation for using hisat2 for alignment, an index was built of the reference genome.
+
+
+``` 
+# Building hisat2 index
+hisat2-build S2-20_chromosome.fasta  S2-20_c_index
+```
+
+
+At this point I switched to using the OSCER for better resources. The hisat2 alignment was performed using the following code. A loop was used to loop through the multiple sample files.
+
+
+```
+# sh file for hisat2
+ml HISAT2/2.2.1-gompi-2022a
+
+# Loop through all files starting with S and ending in R1_paired.fq.gz
+for R1 in S*_R1_paired.fq.gz; do
+    # Extract the base name for the sample
+    BASENAME=$(basename "$R1" _R1_paired.fq.gz)
+    
+    # Define the corresponding R2 file
+    R2="${BASENAME}_R2_paired.fq.gz"
+    
+    # Align the files
+    hisat2 -p 4 -x S2-20_c_index \
+        -1 "$R1" \
+        -2 "$R2" \
+        -S "hisat2/${BASENAME}_chromosome.sam"
+done
+
+# sbatch file for hisat2
+#!/bin/bash
+#
+#SBATCH --partition=normal
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem 64G
+#SBATCH --output=hisat2_%J_stdout.txt
+#SBATCH --error=hisat2_%J_stderr.txt
+#SBATCH --job-name=hisat_test
+# 
+
+bash S2-20_hisat.sh
+```
+
+
+The alignments appeared to be very successful. Some example statistics for one of the two strains is included below. 
+
+```
+# The alignments looked very good
+# At this point everything was going so smoothly, I fancied myself to be a very good programmer
+39059017 reads; of these:
+  39059017 (100.00%) were paired; of these:
+    2938508 (7.52%) aligned concordantly 0 times
+    33708776 (86.30%) aligned concordantly exactly 1 time
+    2411733 (6.17%) aligned concordantly >1 times
+    ----
+    2938508 pairs aligned concordantly 0 times; of these:
+      1369834 (46.62%) aligned discordantly 1 time
+    ----
+    1568674 pairs aligned 0 times concordantly or discordantly; of these:
+      3137348 mates make up the pairs; of these:
+        1904357 (60.70%) aligned 0 times
+        1090692 (34.76%) aligned exactly 1 time
+        142299 (4.54%) aligned >1 times
+97.56% overall alignment rate
+33245485 reads; of these:
+  33245485 (100.00%) were paired; of these:
+    1938707 (5.83%) aligned concordantly 0 times
+    28701870 (86.33%) aligned concordantly exactly 1 time
+    2604908 (7.84%) aligned concordantly >1 times
+    ----
+    1938707 pairs aligned concordantly 0 times; of these:
+      602392 (31.07%) aligned discordantly 1 time
+    ----
+    1336315 pairs aligned 0 times concordantly or discordantly; of these:
+      2672630 mates make up the pairs; of these:
+        1687012 (63.12%) aligned 0 times
+        865151 (32.37%) aligned exactly 1 time
+        120467 (4.51%) aligned >1 times
+97.46% overall alignment rate
+28445189 reads; of these:
+  28445189 (100.00%) were paired; of these:
+    1350072 (4.75%) aligned concordantly 0 times
+    24215863 (85.13%) aligned concordantly exactly 1 time
+    2879254 (10.12%) aligned concordantly >1 times
+    ----
+    1350072 pairs aligned concordantly 0 times; of these:
+      271743 (20.13%) aligned discordantly 1 time
+    ----
+    1078329 pairs aligned 0 times concordantly or discordantly; of these:
+      2156658 mates make up the pairs; of these:
+        1353149 (62.74%) aligned 0 times
+        679514 (31.51%) aligned exactly 1 time
+        123995 (5.75%) aligned >1 times
+97.62% overall alignment rate
+36826940 reads; of these:
+  36826940 (100.00%) were paired; of these:
+    3153836 (8.56%) aligned concordantly 0 times
+    26524993 (72.03%) aligned concordantly exactly 1 time
+    7148111 (19.41%) aligned concordantly >1 times
+    ----
+    3153836 pairs aligned concordantly 0 times; of these:
+      1841434 (58.39%) aligned discordantly 1 time
+    ----
+    1312402 pairs aligned 0 times concordantly or discordantly; of these:
+      2624804 mates make up the pairs; of these:
+        1449446 (55.22%) aligned 0 times
+        972808 (37.06%) aligned exactly 1 time
+        202550 (7.72%) aligned >1 times
+98.03% overall alignment rate
+
+```
+
+
+Samtools was used to convert the sam files into bam files and then to sort the bam files in preparation for generating read counts. Loops were used to go through multiple sample files. Parallel processing was used for sorting the bam files to speed up the process as it was time-intensive on original attempts.  
+
+
+```
+# Converting from sam to bam
+for file in hisat2/S*chromosome.sam; do
+    samtools view -S -b "$file" > "${file%.sam}.bam"
+done
+
+# Sorting bam files. Module loading was added to fix error messages.
+module load parallel
+module load samtools
+ls hisat2/S*chromosome.bam | parallel -j 6 "samtools sort -@ 20 {} -o {.}.sorted.bam"
+```
+
+
+A lot of difficulty was encountered during the read count phase. I (primarily) tried two different packages to produce read counts: HTSeq and featureCounts from Subread, and I briefly attempted to use Salmon as well. 
+HTSeq was attempted first but kept producing error messages in regards to the formatting of the .gff3 file. 
+
+I tried featureCounts next and realized that I needed a .gtf file. Agat was attempted to convert from .gff3 to .gtf but I failed to get this package to work correctly, so I switched to using gffread instead, which succeeded.  
+After some troubleshooting of errors, featureCounts was successfully run but produced a file which included only a handful of the genes and with mostly zeroes as the counts. I tried running the R package version of featureCounts in Rstudio as well but received the same result. 
+I briefly attempted to use an additional package, Salmon, for producing read counts before I realized that a transcriptome was required for that method. 
+I also looked into using Kallisto at some point but concluded that it wasn't well-suited for prokaryotes. 
+
+
+After failing with featureCounts, I returned to using HTSeq. I attempted using a gff3 file from Genbank instead of the one from Bakta, but it gave another error message, so I returned to using the Bakta version. I solved one error message by removing two question marks in the gff3 file that appeared to be causing formatting issues (the questions marks were in place of strandedness indicators - I changed it to a . to represent unspecified). Around this point, I requested assistance from my brother who is a computer science engineer and he helped me with troubleshooting. I fixed the next error message by telling the command to look for the locus_tag column from the gff3 file rather than gene. I resolved the next error message by removing the DNA sequence from the end of the gff3 file which appeared to be confusing HTSeq and which doesn't seem to be necessary to obtain read counts. At some point I had to load the module pysam to fix an error message. HTSeq then finally produced a file of read counts, but it contained only zeroes. After some troubleshooting with help from my brother, we determined that the name of the singular chromosome involved was called something different in the .gff3 file compared to the sorted bam files, so I used a quick sed command to edit the name in the .gff3 file to match that of the sorted bam files. The process of troubleshooting errors was quite lengthy because running a single file would take 40 minutes to an hour to run, and the error messages that I was receiving toward the end would not generate until the end (presumably because they were related to errors farther along in the .gff3 file after I had already resolved all errors in formatting near the top). 
+
+Some errors from HTSeq are documented below (errors from other packages not included). Not all HTSeq errors are included either as I believe I've lost some from when I started this, and they may be out of order as I have lost track of sequence by now. 
+
+
+```
+/opt/oscer/software/HTSeq/0.6.1p1-intel-2016a-Python-2.7.10/bin/htseq-count: Error: Please provide two arguments.
+  Call with '-h' to get usage information.
+# Admittedly I don't recall how I fixed this error but I assume it was fixed somehow as I am no longer getting it
+
+Error occured when processing GFF file (line 11 of file S2-20_Bakta/S2-20_chromosome.gff3):
+  Strand must be'+', '-', or '.'.
+  [Exception type: ValueError, raised in _HTSeq.pyx:71]
+# Two genes in .gff3 file had question marks in the column for strand specificity. I changed the question marks to . to indicate unspecified
+
+htseq-count: error: no such option: -n
+# Stopped attempting to specify number of threads in command
+
+Error occured when processing GFF file (line 14 of file S2-20_Bakta/S2-20_chromosome.gff3):
+  Feature PGALBN_00020 does not contain a 'gene' attribute
+  [Exception type: ValueError, raised in count.py:53]
+# Fixed above error by changing -i in command to locus_tag
+
+Error occured when processing GFF file (line 1809 of file S2-20_Bakta/S2-20_chromosome.gff3):
+  need more than 1 value to unpack
+  [Exception type: ValueError, raised in __init__.py:207]
+# Fixed above error by removing the DNA sequence that was appended to the end of the .gff3 file starting at line 1809
+
+# Never mind the 'good programmer' thing
+
+1799 GFF lines processed.
+Please Install PySam to use the BAM_Reader Class (http://code.google.com/p/pysam/)Error occured when reading beginning of SAM/BAM file.
+  No module named pysam
+  [Exception type: ImportError, raised in __init__.py:937]
+# Attempted to fix above error by loading module pysam
+
+Lmod has detected the following error: These module(s) or extension(s) exist
+but cannot be loaded as requested: "GCC/7.3.0-2.30"
+   Try: "module spider GCC/7.3.0-2.30" to see how to load the module(s).
+1799 GFF lines processed.
+Please Install PySam to use the BAM_Reader Class (http://code.google.com/p/pysam/)Error occured when reading beginning of SAM/BAM file.
+  No module named pysam
+  [Exception type: ImportError, raised in __init__.py:937]
+# Fixed above error by loading the GCC module and then pysam
+
+# Received a read counts file of all zeroes, used sed command to fix chromosome name in .gff3 file to match that of the sorted bam files
+```
+
+
+I was finally able to run HTSeq to successfully generate read count files. However, running each file is currently taking an hour or more, so I have only generated read counts for two timepoints with three replicates each at this time (6 read count files total). This is just enough to do a differential gene expression analysis comparing one of the timepoints, 6 hours, to the other timepoint, Time 0. 
+
+
+Example of successful HTSeq command below, running individually for each file:
+```
+module load binutils/2.38
+
+module load Python/2.7.10-intel-2016a
+
+module load HTSeq/0.6.1p1-intel-2016a-Python-2.7.10
+
+module load GCC/7.3.0-2.30
+
+module load Pysam/0.15.1-foss-2018b-Python-2.7.15
+
+htseq-count -f bam -r pos -s no -t CDS -i locus_tag hisat2/sorted_bam/S6h_3R_S77_chromosome.sorted.bam S2-20_Bakta/S2-20_chromosome_fixed2.gff3 > S6h_3R_S77_read_counts.txt
+
+```
+
+
+Going forward, I will run the command so it will process all of the sorted bam files and then generate one shared read counts file for all timepoints. 
+
+
+While I was trying to get HTSeq to work, my brother tried running featureCounts and he was able to use it successfully. As it turns out, featureCounts is exceedingly fast compared to HTSeq, probably because it is able to utilize multiple cores whereas HTSeq appears to limit the number of cores it can use to one per file. For comparison- HTSeq took an hour or more for one file on the supercomputer, whereas featureCounts took under five minutes to run one file using 8 cores. We compared the read count files from HTSeq with the one from featureCounts for the same sample and found them to be very similar for each gene (within an order of magnitude). 
+
+
+Due to time constraints, we were only able to run featureCounts on the three replicates for two timepoints (Time 0 and Time 6 hours). This is six samples total and it is the minimum amount required to run the differential expression analysis. 
+
+
+Here is the command that my brother used for featureCounts:
+
+```
+ gene_expression_analysis git:(main) ✗ make feature-counts-all
+Starting featureCounts for all BAM files at: 2024-12-19 06:34:38
+/opt/homebrew/Caskroom/miniforge/base/condabin/conda run -n gene_expression_analysis featureCounts \
+		-T 8 \
+		-t CDS \
+		-g locus_tag \
+		-O -M \
+		-s 0 \
+		-p \
+		--countReadPairs \
+		--verbose \
+		-a gffs/S2-20_chromosome_fixed2.gff3 \
+		-o results/all_1734611678_result.txt \
+		bams/*chromosome.sorted.bam
+
+# I never want to use HTSEq again. featureCounts is the best
+```
+
+Before I run the rest of the samples, I will modify the above command to include the gene names in the read counts file as well to save time on manually looking up locus tags to find the gene.
+
+
+I used DEBrowser (a visual interface for DeSeq2) in RStudio to perform the differential gene expression analysis. Due to a lack of proper read count files, I initially tested it using the low read count file generated by featureCounts. It crashed on the first try, which turned out to be caused by an inability to read the hashtag heading on the featureCount file. I removed the hashtag comments from the top of the file and it was subsequently successful. I also edited the column names to match that of my metadata file, which I created based on the samples. The read count file and metadata file were both in tab delimited format. I was able to successfully load these files into DEBrowser and open the interface, but I couldn't go any further without a good read count file. After my brother helped me run featureCounts, I was able to go ahead and run DEBrowser on two of my timepoints.
+
+
+Code for running DEBrowser in RStudio:
+
+```
+# BiocManager::install("debrowser")
+
+library(debrowser)
+
+startDEBrowser()
+```
+
+
+I ran a differential gene expression analysis on the two timepoints (using DeSeq2's RLE normalization with default settings, and after filtering the data to remove low counts where the max value was less than 10). A spreadsheet of fold changes was generated. After filtering to p-value significance less than 0.05, I had 125 differentially regulated genes. 
+
+
+As a sample of my results, here are the top ten upregulated genes at six hours, as compared to zero hours, by locus tag and gene name along with their fold change:
+
+```
+PGALBN_01495 - modA - 17.33868779
+PGALBN_01490 - mopI - 17.0535407
+PGALBN_01485 - modB - 14.73265877
+PGALBN_00125 - tcyP - 11.60499626
+PGALBN_01480 - cysA - 10.18766542
+PGALBN_05170 - unknown - 8.983158438
+PGALBN_05145 - hisJ - 7.657226187
+PGALBN_01590 - perR - 7.239662576
+PGALBN_01430 - peb3 - 6.863246046
+PGALBN_02780 - citT - 5.863943516
+```
+
+
+## Conclusion
+
+  The initial process of using python packages for processing the data went relatively smoothly. The fastqc package produced quality checks similar to that performed by CLC Genomics. Trimming was fairly straightforward, if a bit time-consuming to perform on so many samples. I have some complaints regarding Bakta given the issues with the annotation file that it produced, such as the question marks and odd naming for the chromosome, but overall it worked adequately. Hisat2 produced very good alignments. Samtools was able to both convert from sam to bam and then sort the bam files, although some of these processes were time-consuming on so many samples. The supercomputer was useful for shortening the time on some of the processes, once I figured out how to use more cores and memory. DEBrowser worked as expected. The entire read count process, however, was very frustrating. Since many of the errors seemed to be related to the formatting of the .gff3 file, I suspect this might have to do with Bakta, although this is somewhat disputed by the fact that using a .gff3 file from Genbank did not fix the issue. 
+  
+  
+  Overall this data analysis took me much longer than it would have if I were running it in the CLC. This is partly because I am still learning how to use the programs of course, but also I seemed to spend much more time babysitting the processes whereas in the CLC I could have used a workflow for all parts of the analysis and then let it run overnight. A future improvement to this analysis would be developing a workflow that would allow me to leave the data analysis unattended. I also struggled to determine an appropriate number of CPUs to request that would run the process in a reasonable amount of time while also not waitlisting the process for too long by demanding a lot of resources. 
+  
+  
+  My next steps are to finish performing the read count process on the remaining samples. I will be using featureCounts for all read count processes going forward. I will then perform the differential gene expression analysis comparing every timepoint to Time 0, and then I can start sorting through the fold change data to find more genes with interesting differential expression under aerobic conditions. These steps will be completed within the next couple of weeks. In the farther future, I may look into ways of creating a workflow to streamline this process. 
+  
