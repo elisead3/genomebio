@@ -11,3 +11,4 @@ Repository for all of the genome biology practice, homework, and projects
 * [Chapter 4](chapter4.html)
 
 [Project Proposal](BIOL7263_project_proposal.pdf)
+[Project Markdown](genomebio_project.html)
